@@ -1,4 +1,4 @@
-import { initializeEcosystem, updateEcosystem } from './ecosystem.js';
+import { initializeEcosystem, updateEcosystem, togglePerformanceMode } from './ecosystem.js';
 import { updateEntities } from './entities.js';
 
 const world = document.getElementById('world');
