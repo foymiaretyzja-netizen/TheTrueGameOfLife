@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Underwater Canvas</title>
+    <style>
+        /* Reset and prevent default scrolling */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #001220; /* Deepest ocean blue fallback */
+            user-select: none; /* Prevent text highlighting while dragging */
+        }
+
+        /* The stationary viewport with the underwater gradient */
+        #viewport {
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 0%, #005a96 0%, #00294d 50%, #001220 100%);
+            position: relative;
+        }
+
+        /* The massive movable plane */
+        #world {
+            position: absolute;
+            width: 20000px; /* Massive plane */
+            height: 20000px;
+            /* Transparent Grid Overlay */
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform-origin: 0 0;
+            cursor: grab;
+        }
+
+        #world:active {
+            cursor: grabbing;
+        }
+
+        /* Bubble styling and animation */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3);
+            animation: float infinite ease-in;
+            pointer-events: none; /* Let clicks pass through bubbles to the grid */
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translateY(-800px) scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="viewport">
+        <div id="world">
+            </div>
+    </div>
+
+    <script>
+        const world = document.getElementById('world');
+        
+        // Panning & Zooming Variables
+        let scale = 1;
+        let panning = false;
+        
+        // Start roughly in the middle of our 20,000px plane
+        let pointX = -10000 + window.innerWidth / 2;
+        let pointY = -10000 + window.innerHeight / 2;
+        let startX = 0;
+        let startY = 0;
+
+        // Apply initial transform
+        function setTransform() {
+            world.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+        }
+        setTransform();
+
+        // --- Drag to Pan ---
+        document.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            panning = true;
+            // Calculate where we clicked relative to the current translation
+            startX = e.clientX - pointX;
+            startY = e.clientY - pointY;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!panning) return;
+            // Update the translation based on mouse movement
+            pointX = e.clientX - startX;
+            pointY = e.clientY - startY;
+            setTransform();
+        });
+
+        document.addEventListener('mouseup', () => { panning = false; });
+        document.addEventListener('mouseleave', () => { panning = false; });
+
+        // --- Scroll to Zoom ---
+        document.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            
+            // Zoom speed setting
+            const zoomIntensity = 0.1;
+            const wheel = e.deltaY < 0 ? 1 : -1;
+            const zoomFactor = Math.exp(wheel * zoomIntensity);
+            
+            let newScale = scale * zoomFactor;
+            
+            // Limit how far you can zoom in and out
+            newScale = Math.max(0.1, Math.min(newScale, 5));
+
+            // Math to keep the zoom centered on the mouse cursor
+            const mouseX = e.clientX - pointX;
+            const mouseY = e.clientY - pointY;
+
+            pointX -= mouseX * (newScale / scale - 1);
+            pointY -= mouseY * (newScale / scale - 1);
+            scale = newScale;
+
+            setTransform();
+        }, { passive: false });
+
+        // --- Generate Bubbles ---
+        const numberOfBubbles = 300; // Adjust for density
+        for (let i = 0; i < numberOfBubbles; i++) {
+            let bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            
+            // Randomize size, position, and animation timing
+            let size = Math.random() * 15 + 5;
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${Math.random() * 100}%`;
+            bubble.style.top = `${Math.random() * 100}%`;
+            bubble.style.animationDuration = `${Math.random() * 15 + 8}s`;
+            bubble.style.animationDelay = `${Math.random() * 10}s`;
+            
+            world.appendChild(bubble);
+        }
+    </script>
+</body>
+</html>
