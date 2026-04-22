@@ -1,5 +1,5 @@
-// We need to import the food array so the fish can "see" it!
 import { foods } from './ecosystem.js';
+import { selectEntity } from './ui.js'; // --- NEW IMPORT ---
 
 export class Prey {
     constructor(x, y) {
@@ -7,22 +7,33 @@ export class Prey {
         this.y = y;
         this.angle = Math.random() * 360; 
         
-        // Biological Stats
         this.health = 100;
         this.hunger = 100;
         this.stamina = 100;
+        this.rewardTimer = 0; 
         
-        // The Reward System
-        this.rewardTimer = 0; // Increases as they survive, drops if they take damage
+        this.visionDistance = 300; 
+        this.senses = { visionLeft: 0, visionCenter: 0, visionRight: 0, hungerLevel: 1.0 };
+        this.brain = { inputs: 4, hiddenNodes: 50, outputs: 2 };
+
+        this.element = document.createElement('div');
+        this.element.classList.add('prey');
         
-        // --- NEW: SENSORY INPUTS ---
-        this.visionDistance = 300; // How far they can see in pixels
-        this.senses = {
-            visionLeft: 0,   // 0 (nothing) to 1 (food right in front of my left eye)
-            visionCenter: 0,
-            visionRight: 0,
-            hungerLevel: 1.0 // 1.0 is full, 0.0 is starving
-        };
+        // --- NEW: Add the Vision Cone DOM element ---
+        this.coneElement = document.createElement('div');
+        this.coneElement.classList.add('vision-cone');
+        this.element.appendChild(this.coneElement);
+
+        document.getElementById('world').appendChild(this.element);
+
+        // --- NEW: Make the fish clickable ---
+        this.element.addEventListener('mousedown', (e) => {
+            e.stopPropagation(); // Prevents the map from dragging when you click a fish
+            selectEntity(this);
+        });
+    }
+    
+    // ... keep lookAround() and update() exactly the same as before ...
 
         // --- NEW: THE BRAIN ---
         // We will build the actual matrix math for these 50 neurons in the next step
