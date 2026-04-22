@@ -12,8 +12,8 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #001220; /* Deepest ocean blue fallback */
-            user-select: none; /* Prevent text highlighting while dragging */
+            background-color: #001220; 
+            user-select: none; 
         }
 
         /* The stationary viewport with the underwater gradient */
@@ -27,7 +27,7 @@
         /* The massive movable plane */
         #world {
             position: absolute;
-            width: 20000px; /* Massive plane */
+            width: 20000px; 
             height: 20000px;
             /* Transparent Grid Overlay */
             background-image: 
@@ -49,13 +49,49 @@
             background: rgba(255, 255, 255, 0.1);
             box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3);
             animation: float infinite ease-in;
-            pointer-events: none; /* Let clicks pass through bubbles to the grid */
+            pointer-events: none; 
         }
 
         @keyframes float {
             0% { transform: translateY(0) scale(1); opacity: 0; }
             20% { opacity: 1; }
             100% { transform: translateY(-800px) scale(1.5); opacity: 0; }
+        }
+
+        /* UI Elements */
+        #crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0.5;
+        }
+
+        /* Drawing the crosshair using pseudo-elements */
+        #crosshair::before, #crosshair::after {
+            content: '';
+            position: absolute;
+            background: white;
+        }
+        #crosshair::before { top: 9px; left: 0; width: 20px; height: 2px; } /* Horizontal line */
+        #crosshair::after { top: 0; left: 9px; width: 2px; height: 20px; } /* Vertical line */
+
+        #hud {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: monospace;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -66,40 +102,52 @@
             </div>
     </div>
 
+    <div id="crosshair"></div>
+    <div id="hud">POS: X:0 Y:0 Z:1.00</div>
+
     <script>
         const world = document.getElementById('world');
+        const hud = document.getElementById('hud');
         
-        // Panning & Zooming Variables
-        let scale = 1;
-        let panning = false;
-        
-        // Start roughly in the middle of our 20,000px plane
-        let pointX = -10000 + window.innerWidth / 2;
-        let pointY = -10000 + window.innerHeight / 2;
-        let startX = 0;
-        let startY = 0;
+        // Target values (where the user wants to go)
+        let targetX = -10000 + window.innerWidth / 2;
+        let targetY = -10000 + window.innerHeight / 2;
+        let targetScale = 1;
 
-        // Apply initial transform
-        function setTransform() {
-            world.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
-        }
-        setTransform();
+        // Current values (where the camera actually is right now)
+        let currentX = targetX;
+        let currentY = targetY;
+        let currentScale = targetScale;
+        
+        // Interaction states
+        let panning = false;
+        let startMouseX = 0;
+        let startMouseY = 0;
+        let startTargetX = 0;
+        let startTargetY = 0;
+        let isShiftHeld = false;
+
+        // --- Track Shift Key ---
+        window.addEventListener('keydown', (e) => { if (e.key === 'Shift') isShiftHeld = true; });
+        window.addEventListener('keyup', (e) => { if (e.key === 'Shift') isShiftHeld = false; });
 
         // --- Drag to Pan ---
         document.addEventListener('mousedown', (e) => {
             e.preventDefault();
             panning = true;
-            // Calculate where we clicked relative to the current translation
-            startX = e.clientX - pointX;
-            startY = e.clientY - pointY;
+            startMouseX = e.clientX;
+            startMouseY = e.clientY;
+            startTargetX = targetX;
+            startTargetY = targetY;
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!panning) return;
-            // Update the translation based on mouse movement
-            pointX = e.clientX - startX;
-            pointY = e.clientY - startY;
-            setTransform();
+            // Calculate distance moved and apply to the TARGET destination
+            const dx = e.clientX - startMouseX;
+            const dy = e.clientY - startMouseY;
+            targetX = startTargetX + dx;
+            targetY = startTargetY + dy;
         });
 
         document.addEventListener('mouseup', () => { panning = false; });
@@ -109,34 +157,53 @@
         document.addEventListener('wheel', (e) => {
             e.preventDefault();
             
-            // Zoom speed setting
-            const zoomIntensity = 0.1;
+            // Reduced zoom intensity for slower scrolling
+            const zoomIntensity = 0.05; 
             const wheel = e.deltaY < 0 ? 1 : -1;
             const zoomFactor = Math.exp(wheel * zoomIntensity);
             
-            let newScale = scale * zoomFactor;
-            
-            // Limit how far you can zoom in and out
-            newScale = Math.max(0.1, Math.min(newScale, 5));
+            let newScale = targetScale * zoomFactor;
+            newScale = Math.max(0.1, Math.min(newScale, 5)); // Limits
 
-            // Math to keep the zoom centered on the mouse cursor
-            const mouseX = e.clientX - pointX;
-            const mouseY = e.clientY - pointY;
+            // Math to keep the zoom centered on the mouse cursor relative to the target
+            const mouseX = e.clientX - targetX;
+            const mouseY = e.clientY - targetY;
 
-            pointX -= mouseX * (newScale / scale - 1);
-            pointY -= mouseY * (newScale / scale - 1);
-            scale = newScale;
+            targetX -= mouseX * (newScale / targetScale - 1);
+            targetY -= mouseY * (newScale / targetScale - 1);
+            targetScale = newScale;
 
-            setTransform();
         }, { passive: false });
 
+        // --- Animation Loop (The Physics) ---
+        function updatePhysics() {
+            // If shift is held, ease is 1 (instant snap). Otherwise, ease is 0.08 (smooth float).
+            const ease = isShiftHeld ? 1 : 0.08;
+
+            // Interpolate current position toward target position
+            currentX += (targetX - currentX) * ease;
+            currentY += (targetY - currentY) * ease;
+            currentScale += (targetScale - currentScale) * ease;
+
+            // Apply transform
+            world.style.transform = `translate(${currentX}px, ${currentY}px) scale(${currentScale})`;
+
+            // Update HUD
+            hud.innerText = `POS: X:${Math.round(-currentX)} Y:${Math.round(-currentY)} Z:${currentScale.toFixed(2)}x`;
+
+            // Call next frame
+            requestAnimationFrame(updatePhysics);
+        }
+        
+        // Start the loop
+        updatePhysics();
+
         // --- Generate Bubbles ---
-        const numberOfBubbles = 300; // Adjust for density
+        const numberOfBubbles = 300; 
         for (let i = 0; i < numberOfBubbles; i++) {
             let bubble = document.createElement('div');
             bubble.classList.add('bubble');
             
-            // Randomize size, position, and animation timing
             let size = Math.random() * 15 + 5;
             bubble.style.width = `${size}px`;
             bubble.style.height = `${size}px`;
