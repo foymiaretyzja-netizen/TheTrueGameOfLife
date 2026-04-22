@@ -80,13 +80,14 @@
 /* --- ENTITIES --- */
         .prey {
             position: absolute;
-            width: 15px;
-            height: 20px;
-            background: #00ffff; /* Cyan for high visibility */
-            /* This border-radius creates a teardrop pointing "up" */
-            border-radius: 50% 50% 50% 10%; 
+            width: 24px;   /* Longer body */
+            height: 12px;  /* Sleek profile */
+            background: #00ffff; 
+            /* This polygon maps out a perfect fish pointing right! */
+            clip-path: polygon(100% 50%, 70% 20%, 30% 20%, 0% 0%, 0% 100%, 30% 80%, 70% 80%);
             transform-origin: center;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            /* Use drop-shadow instead of box-shadow for clip-paths */
+            filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.8)); 
         }
         @keyframes sway {
             0% { transform: rotate(-15deg); }
