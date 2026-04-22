@@ -37,11 +37,25 @@ function generateTerrain() {
                 let rock = document.createElement('div');
                 rock.classList.add('rock');
                 
-                // Add a tiny bit of overlap to hide the grid seams
-                rock.style.width = `${tileSize + 10}px`; 
-                rock.style.height = `${tileSize + 10}px`;
+                // 1. Add slight random variation to the size
+                let widthVariation = tileSize + (Math.random() * 60 - 30);
+                let heightVariation = tileSize + (Math.random() * 60 - 30);
+                
+                // 2. Generate a totally random, organic border-radius for EACH rock
+                // We pick 8 random percentages between 35% and 65%
+                let r = () => Math.floor(Math.random() * 30 + 35);
+                let randomBlobShape = `${r()}% ${r()}% ${r()}% ${r()}% / ${r()}% ${r()}% ${r()}% ${r()}%`;
+                
+                // 3. Give it a random rotation so they don't all face the same way
+                let randomRotation = Math.random() * 360;
+
+                // Apply the unique styles
+                rock.style.width = `${widthVariation}px`; 
+                rock.style.height = `${heightVariation}px`;
                 rock.style.left = `${x}px`;
                 rock.style.top = `${y}px`;
+                rock.style.borderRadius = randomBlobShape;
+                rock.style.transform = `rotate(${randomRotation}deg)`;
                 
                 world.appendChild(rock);
                 
