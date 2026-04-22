@@ -87,7 +87,7 @@ function createBubbles() {
     }
 }
 
-function gameLoop() {
+ffunction gameLoop() {
     const ease = isShiftHeld ? 1 : 0.08;
     currentX += (targetX - currentX) * ease;
     currentY += (targetY - currentY) * ease;
@@ -99,6 +99,12 @@ function gameLoop() {
         hud.innerText = `POS: X:${Math.round(-currentX)} Y:${Math.round(-currentY)} Z:${currentScale.toFixed(2)}x`;
     }
 
+    updateEcosystem(currentX, currentY, currentScale, window.innerWidth, window.innerHeight);
+    updateEntities();
+    updateUI(); // --- NEW: Updates the top bar stats ---
+
+    requestAnimationFrame(gameLoop);
+}
     // --- THIS IS THE LINE THAT CHANGED ---
     // It now hands your camera data over to the ecosystem for culling!
     updateEcosystem(currentX, currentY, currentScale, window.innerWidth, window.innerHeight);
