@@ -1,35 +1,78 @@
-// We export this array so the entities.js can "see" and "eat" the food!
+// Export the foods array and our new performance toggle
 export const foods = []; 
+export let performanceMode = false;
 
-// This acts as the "clock" for our ocean currents
 let oceanTime = 0; 
 
 export function initializeEcosystem() {
-    console.log("Ecosystem Initialized: Spawning floating food sources...");
+    console.log("Ecosystem Initialized: Spawning floating food...");
     generateFood();
 }
 
-export function updateEcosystem() {
-    oceanTime += 0.01; // Advance the current slightly every frame
+// --- NEW: Performance Toggle ---
+export function togglePerformanceMode() {
+    performanceMode = !performanceMode;
+    console.log(`Performance Mode: ${performanceMode ? 'ON' : 'OFF'}`);
+
+    if (performanceMode) {
+        // Find all food that is still alive
+        let activeFoods = foods.filter(f => f.active);
+        
+        // Calculate half of them
+        let foodsToKill = Math.floor(activeFoods.length / 2);
+        
+        // Shuffle the array so we delete them randomly, keeping the map spread out
+        activeFoods.sort(() => Math.random() - 0.5);
+
+        // Eradicate 50% of them permanently
+        for (let i = 0; i < foodsToKill; i++) {
+            activeFoods[i].active = false;
+            // Remove the HTML element completely to save memory
+            if (activeFoods[i].element) {
+                activeFoods[i].element.remove();
+            }
+        }
+        console.log(`Purged ${foodsToKill} food items for performance.`);
+    }
+}
+
+// We now pass the camera coordinates from engine.js into the ecosystem!
+export function updateEcosystem(camX, camY, scale, screenW, screenH) {
+    oceanTime += 0.01; 
     const worldSize = 20000;
 
-    // Loop through every piece of food and make it drift
+    // Calculate the exact borders of what the camera can see
+    // We add a 200px "padding" so items don't visibly pop into existence
+    const padding = 200;
+    const viewLeft = -camX / scale - padding;
+    const viewRight = (-camX + screenW) / scale + padding;
+    const viewTop = -camY / scale - padding;
+    const viewBottom = (-camY + screenH) / scale + padding;
+
     foods.forEach(food => {
         if (!food.active) return;
 
-        // Math.sin and Math.cos create smooth, circular swaying movements
+        // Always calculate the drift math so they keep moving off-screen
         food.x += Math.cos(food.driftAngle + oceanTime) * food.driftSpeed;
         food.y += Math.sin(food.driftAngle + oceanTime) * food.driftSpeed;
 
-        // If they float off the edge of the map, wrap them around to the other side!
         if (food.x < 0) food.x = worldSize;
         if (food.x > worldSize) food.x = 0;
         if (food.y < 0) food.y = worldSize;
         if (food.y > worldSize) food.y = 0;
 
-        // Update their actual position on the screen
-        food.element.style.left = `${food.x}px`;
-        food.element.style.top = `${food.y}px`;
+        // --- Frustum Culling ---
+        let isVisible = true;
+        if (performanceMode) {
+            // Check if the food is inside the camera borders
+            isVisible = (food.x > viewLeft && food.x < viewRight && food.y > viewTop && food.y < viewBottom);
+        }
+
+        // Only update the actual CSS if it is on screen (or if performance mode is off)
+        if (isVisible) {
+            food.element.style.left = `${food.x}px`;
+            food.element.style.top = `${food.y}px`;
+        }
     });
 }
 
@@ -54,7 +97,6 @@ function generateFood() {
             if (config.type === 'seaweed') {
                 foodElement.style.animationDelay = `${Math.random() * 2}s`;
             } else {
-                // Keep the initial random rotation for bittergrass and urchins
                 foodElement.style.transform = `rotate(${Math.random() * 360}deg)`;
             }
 
@@ -63,19 +105,15 @@ function generateFood() {
 
             world.appendChild(foodElement);
 
-            // Save the drift physics to our array
             foods.push({
                 x: x,
                 y: y,
                 type: config.type,
                 element: foodElement, 
                 active: true,
-                // --- NEW PHYSICS ---
-                driftAngle: Math.random() * Math.PI * 2, // Random starting direction
-                driftSpeed: Math.random() * 0.8 + 0.2    // Random speed between 0.2 and 1.0
+                driftAngle: Math.random() * Math.PI * 2, 
+                driftSpeed: Math.random() * 0.8 + 0.2    
             });
         }
     });
-
-    console.log(`World generated. Spawned ${foods.length} drifting food items.`);
 }
