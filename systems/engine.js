@@ -1,5 +1,5 @@
 import { initializeEcosystem, updateEcosystem, togglePerformanceMode } from './ecosystem.js';
-import { updateEntities } from './entities.js';
+import { initializeEntities, updateEntities } from './entities.js';;
 
 const world = document.getElementById('world');
 const hud = document.getElementById('hud');
