@@ -22,7 +22,7 @@ function generateTerrain() {
     
     // Tweak these to change the map shape!
     const noiseScale = 0.003; // Keeps the landmasses sweeping and large
-    const threshold = 0.98;   // RAISED: Only the very highest peaks become rocks now (more open water!)
+    const threshold = 0.78;   // RAISED: Only the very highest peaks become rocks now (more open water!)
 
     let rockCount = 0;
 
