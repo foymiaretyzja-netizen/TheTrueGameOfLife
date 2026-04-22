@@ -1,3 +1,4 @@
+import { toggleDebugMode, updateUI, selectEntity } from './ui.js';
 import { initializeEcosystem, updateEcosystem, togglePerformanceMode } from './ecosystem.js';
 import { initializeEntities, updateEntities } from './entities.js';;
 
@@ -19,7 +20,16 @@ let isShiftHeld = false;
 
 window.addEventListener('keydown', (e) => { 
     if (e.key === 'Shift') isShiftHeld = true; 
-    if (e.key === '`') togglePerformanceMode(); // Triggers the purge!
+    if (e.key === '`') togglePerformanceMode();
+    if (e.key === '1') toggleDebugMode(); // --- NEW: Debug key ---
+});
+
+// --- NEW: Click the empty ocean to deselect the fish ---
+document.getElementById('world').addEventListener('mousedown', (e) => {
+    // Only deselect if we clicked the actual world background, not a piece of food
+    if (e.target === document.getElementById('world')) {
+        selectEntity(null);
+    }
 });
 
 document.addEventListener('mousedown', (e) => {
