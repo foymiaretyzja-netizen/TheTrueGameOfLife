@@ -1,6 +1,6 @@
 import { toggleDebugMode, updateUI, selectEntity } from './ui.js';
 import { initializeEcosystem, updateEcosystem, togglePerformanceMode } from './ecosystem.js';
-import { initializeEntities, updateEntities } from './entities.js';;
+import { initializeEntities, updateEntities } from './entities.js';
 
 const world = document.getElementById('world');
 const hud = document.getElementById('hud');
@@ -22,6 +22,10 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'Shift') isShiftHeld = true; 
     if (e.key === '`') togglePerformanceMode();
     if (e.key === '1') toggleDebugMode(); // --- NEW: Debug key ---
+});
+
+window.addEventListener('keyup', (e) => { 
+    if (e.key === 'Shift') isShiftHeld = false; 
 });
 
 // --- NEW: Click the empty ocean to deselect the fish ---
@@ -87,7 +91,7 @@ function createBubbles() {
     }
 }
 
-ffunction gameLoop() {
+function gameLoop() {
     const ease = isShiftHeld ? 1 : 0.08;
     currentX += (targetX - currentX) * ease;
     currentY += (targetY - currentY) * ease;
@@ -105,20 +109,9 @@ ffunction gameLoop() {
 
     requestAnimationFrame(gameLoop);
 }
-    // --- THIS IS THE LINE THAT CHANGED ---
-    // It now hands your camera data over to the ecosystem for culling!
-    updateEcosystem(currentX, currentY, currentScale, window.innerWidth, window.innerHeight);
-    
-    updateEntities();
 
-    requestAnimationFrame(gameLoop);
-}
 // Start everything up
 createBubbles();
 initializeEcosystem();
-gameLoop();
-// Start everything up
-createBubbles();
-initializeEcosystem();
-initializeEntities(); // <--- Drops right here!
+initializeEntities(); 
 gameLoop();
