@@ -89,12 +89,14 @@ function gameLoop() {
         hud.innerText = `POS: X:${Math.round(-currentX)} Y:${Math.round(-currentY)} Z:${currentScale.toFixed(2)}x`;
     }
 
-    updateEcosystem();
+    // --- THIS IS THE LINE THAT CHANGED ---
+    // It now hands your camera data over to the ecosystem for culling!
+    updateEcosystem(currentX, currentY, currentScale, window.innerWidth, window.innerHeight);
+    
     updateEntities();
 
     requestAnimationFrame(gameLoop);
 }
-
 // Start everything up
 createBubbles();
 initializeEcosystem();
