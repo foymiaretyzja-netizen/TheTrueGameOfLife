@@ -46,6 +46,54 @@
             animation: float infinite ease-in;
             pointer-events: none; 
         }
+        /* --- UI AND DEBUG TOOLS --- */
+        #target-ui {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 18, 32, 0.8);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            font-family: monospace;
+            padding: 10px 20px;
+            border-radius: 4px;
+            display: none; /* Hidden until a fish is clicked */
+            gap: 20px;
+            z-index: 200;
+            pointer-events: none;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        }
+
+        .vision-cone {
+            position: absolute;
+            width: 600px; /* 300px radius * 2 */
+            height: 600px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            pointer-events: none;
+            display: none; /* Hidden by default */
+            /* Paints a 90-degree cone centered on the right side */
+            background: conic-gradient(from 45deg, 
+                rgba(255, 0, 0, 0.15) 0 30deg,     /* Left Cone (Red) */
+                rgba(0, 255, 0, 0.15) 30deg 60deg, /* Center Cone (Green) */
+                rgba(0, 0, 255, 0.15) 60deg 90deg, /* Right Cone (Blue) */
+                transparent 90deg
+            );
+        }
+
+        /* Pressing '1' adds this class to the world, revealing all cones */
+        .debug-mode .vision-cone {
+            display: block;
+        }
+
+        /* Makes the clicked fish glow bright white */
+        .prey.selected {
+            filter: drop-shadow(0 0 10px #ffffff) drop-shadow(0 0 20px #ffffff) !important;
+            z-index: 50;
+        }
 /* --- ECOSYSTEM FOOD --- */
         .seaweed {
             position: absolute;
@@ -137,6 +185,13 @@
 
     <div id="crosshair"></div>
     <div id="hud">POS: X:0 Y:0 Z:1.00</div>
+
+    <div id="target-ui">
+        <div><strong>TARGET ACQUIRED</strong></div>
+        <div>Health: <span id="ui-health">100</span></div>
+        <div>Hunger: <span id="ui-hunger">100</span></div>
+        <div>Status: <span id="ui-action">Wandering</span></div>
+    </div>
 
   <script type="module" src="./systems/engine.js"></script>
 </body>
