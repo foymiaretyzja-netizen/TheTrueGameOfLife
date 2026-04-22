@@ -1,5 +1,5 @@
 import { foods } from './ecosystem.js';
-import { selectEntity } from './ui.js'; // --- NEW IMPORT ---
+import { selectEntity } from './ui.js';
 
 export class Prey {
     constructor(x, y) {
@@ -16,39 +16,26 @@ export class Prey {
         this.senses = { visionLeft: 0, visionCenter: 0, visionRight: 0, hungerLevel: 1.0 };
         this.brain = { inputs: 4, hiddenNodes: 50, outputs: 2 };
 
+        // 1. Create the Fish Body
         this.element = document.createElement('div');
         this.element.classList.add('prey');
         
-        // --- NEW: Add the Vision Cone DOM element ---
+        // 2. Create and attach the Vision Cone
         this.coneElement = document.createElement('div');
         this.coneElement.classList.add('vision-cone');
         this.element.appendChild(this.coneElement);
 
+        // 3. Put the fish in the world
         document.getElementById('world').appendChild(this.element);
 
-        // --- NEW: Make the fish clickable ---
+        // 4. Make the fish clickable for the UI
         this.element.addEventListener('mousedown', (e) => {
             e.stopPropagation(); // Prevents the map from dragging when you click a fish
             selectEntity(this);
         });
     }
     
-    // ... keep lookAround() and update() exactly the same as before ...
-
-        // --- NEW: THE BRAIN ---
-        // We will build the actual matrix math for these 50 neurons in the next step
-        this.brain = {
-            inputs: 4,       // Left, Center, Right, Hunger
-            hiddenNodes: 50, // Your requested 50-neuron processing layer
-            outputs: 2       // Turn Angle, Swim Speed
-        };
-
-        this.element = document.createElement('div');
-        this.element.classList.add('prey');
-        document.getElementById('world').appendChild(this.element);
-    }
-
-    // --- NEW: THE EYES ---
+    // --- THE EYES ---
     lookAround() {
         // Reset vision every frame
         this.senses.visionLeft = 0;
@@ -95,8 +82,7 @@ export class Prey {
         this.lookAround();
         this.senses.hungerLevel = this.hunger / 100;
 
-        // 2. Feed Data to the 50 Neurons (Placeholder logic until we write the neural math)
-        // For right now, if they see food on the left, they steer left. If nothing, they swim straight.
+        // 2. Feed Data to the Brain (Placeholder logic)
         let steerOutput = 0;
         if (this.senses.visionLeft > this.senses.visionRight) steerOutput = -2;
         else if (this.senses.visionRight > this.senses.visionLeft) steerOutput = 2;
