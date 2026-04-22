@@ -101,3 +101,8 @@ function gameLoop() {
 createBubbles();
 initializeEcosystem();
 gameLoop();
+// Start everything up
+createBubbles();
+initializeEcosystem();
+initializeEntities(); // <--- Drops right here!
+gameLoop();
