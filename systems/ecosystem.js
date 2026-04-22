@@ -1,69 +1,81 @@
-// Pulling in a lightweight, lightning-fast Simplex Noise library
-import { createNoise2D } from 'https://unpkg.com/simplex-noise@4.0.1/dist/esm/simplex-noise.js';
+// We export this array so the entities.js can "see" and "eat" the food!
+export const foods = []; 
 
-// We export this array so the brain.js and entities.js can see where the walls are!
-export const colliders = []; 
+// This acts as the "clock" for our ocean currents
+let oceanTime = 0; 
 
 export function initializeEcosystem() {
-    console.log("Ecosystem Initialized: Generating terrain...");
-    generateTerrain();
+    console.log("Ecosystem Initialized: Spawning floating food sources...");
+    generateFood();
 }
 
 export function updateEcosystem() {
-    // We will add plant growth logic here later
+    oceanTime += 0.01; // Advance the current slightly every frame
+    const worldSize = 20000;
+
+    // Loop through every piece of food and make it drift
+    foods.forEach(food => {
+        if (!food.active) return;
+
+        // Math.sin and Math.cos create smooth, circular swaying movements
+        food.x += Math.cos(food.driftAngle + oceanTime) * food.driftSpeed;
+        food.y += Math.sin(food.driftAngle + oceanTime) * food.driftSpeed;
+
+        // If they float off the edge of the map, wrap them around to the other side!
+        if (food.x < 0) food.x = worldSize;
+        if (food.x > worldSize) food.x = 0;
+        if (food.y < 0) food.y = worldSize;
+        if (food.y > worldSize) food.y = 0;
+
+        // Update their actual position on the screen
+        food.element.style.left = `${food.x}px`;
+        food.element.style.top = `${food.y}px`;
+    });
 }
 
-function generateTerrain() {
+function generateFood() {
     const world = document.getElementById('world');
-    const noise2D = createNoise2D();
-    
     const worldSize = 20000;
-    const tileSize = 400; // Massive 400x400 pixel rocks for performance
-    
-    // Tweak these to change the map shape!
-    const noiseScale = 0.003; // Keeps the landmasses sweeping and large
-    const threshold = 0.78;   // RAISED: Only the very highest peaks become rocks now (more open water!)
 
-    let rockCount = 0;
+    const foodTypes = [
+        { type: 'bittergrass', count: 1500 }, 
+        { type: 'seaweed', count: 600 },      
+        { type: 'urchin', count: 400 }        
+    ];
 
-    for (let x = 0; x < worldSize; x += tileSize) {
-        for (let y = 0; y < worldSize; y += tileSize) {
+    foodTypes.forEach(config => {
+        for (let i = 0; i < config.count; i++) {
+            let x = Math.random() * worldSize;
+            let y = Math.random() * worldSize;
+
+            let foodElement = document.createElement('div');
+            foodElement.classList.add(config.type);
             
-            // Get a noise value between -1 and 1
-            const value = noise2D(x * noiseScale, y * noiseScale);
-            
-            // If the value is high enough, spawn a rock
-            if (value > threshold) {
-                let rock = document.createElement('div');
-                rock.classList.add('rock');
-                
-                // 1. Add slight random variation to the size
-                let widthVariation = tileSize + (Math.random() * 60 - 30);
-                let heightVariation = tileSize + (Math.random() * 60 - 30);
-                
-                // 2. Generate a totally random, organic border-radius for EACH rock
-                // We pick 8 random percentages between 35% and 65%
-                let r = () => Math.floor(Math.random() * 30 + 35);
-                let randomBlobShape = `${r()}% ${r()}% ${r()}% ${r()}% / ${r()}% ${r()}% ${r()}% ${r()}%`;
-                
-                // 3. Give it a random rotation so they don't all face the same way
-                let randomRotation = Math.random() * 360;
-
-                // Apply the unique styles
-                rock.style.width = `${widthVariation}px`; 
-                rock.style.height = `${heightVariation}px`;
-                rock.style.left = `${x}px`;
-                rock.style.top = `${y}px`;
-                rock.style.borderRadius = randomBlobShape;
-                rock.style.transform = `rotate(${randomRotation}deg)`;
-                
-                world.appendChild(rock);
-                
-                // Save the data so creatures can crash into them later
-                colliders.push({ x, y, width: tileSize, height: tileSize });
-                rockCount++;
+            if (config.type === 'seaweed') {
+                foodElement.style.animationDelay = `${Math.random() * 2}s`;
+            } else {
+                // Keep the initial random rotation for bittergrass and urchins
+                foodElement.style.transform = `rotate(${Math.random() * 360}deg)`;
             }
+
+            foodElement.style.left = `${x}px`;
+            foodElement.style.top = `${y}px`;
+
+            world.appendChild(foodElement);
+
+            // Save the drift physics to our array
+            foods.push({
+                x: x,
+                y: y,
+                type: config.type,
+                element: foodElement, 
+                active: true,
+                // --- NEW PHYSICS ---
+                driftAngle: Math.random() * Math.PI * 2, // Random starting direction
+                driftSpeed: Math.random() * 0.8 + 0.2    // Random speed between 0.2 and 1.0
+            });
         }
-    }
-    console.log(`World generated. Spawned ${rockCount} rock formations.`);
+    });
+
+    console.log(`World generated. Spawned ${foods.length} drifting food items.`);
 }
