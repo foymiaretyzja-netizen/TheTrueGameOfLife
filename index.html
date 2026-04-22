@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Underwater Canvas</title>
     <style>
-        /* Reset and prevent default scrolling */
         body, html {
             margin: 0;
             padding: 0;
@@ -16,7 +15,6 @@
             user-select: none; 
         }
 
-        /* The stationary viewport with the underwater gradient */
         #viewport {
             width: 100vw;
             height: 100vh;
@@ -24,12 +22,10 @@
             position: relative;
         }
 
-        /* The massive movable plane */
         #world {
             position: absolute;
             width: 20000px; 
             height: 20000px;
-            /* Transparent Grid Overlay */
             background-image: 
                 linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
@@ -42,7 +38,6 @@
             cursor: grabbing;
         }
 
-        /* Bubble styling and animation */
         .bubble {
             position: absolute;
             border-radius: 50%;
@@ -58,7 +53,6 @@
             100% { transform: translateY(-800px) scale(1.5); opacity: 0; }
         }
 
-        /* UI Elements */
         #crosshair {
             position: fixed;
             top: 50%;
@@ -71,14 +65,13 @@
             opacity: 0.5;
         }
 
-        /* Drawing the crosshair using pseudo-elements */
         #crosshair::before, #crosshair::after {
             content: '';
             position: absolute;
             background: white;
         }
-        #crosshair::before { top: 9px; left: 0; width: 20px; height: 2px; } /* Horizontal line */
-        #crosshair::after { top: 0; left: 9px; width: 2px; height: 20px; } /* Vertical line */
+        #crosshair::before { top: 9px; left: 0; width: 20px; height: 2px; } 
+        #crosshair::after { top: 0; left: 9px; width: 2px; height: 20px; } 
 
         #hud {
             position: fixed;
@@ -98,122 +91,12 @@
 <body>
 
     <div id="viewport">
-        <div id="world">
-            </div>
+        <div id="world"></div>
     </div>
 
     <div id="crosshair"></div>
     <div id="hud">POS: X:0 Y:0 Z:1.00</div>
 
-    <script>
-        const world = document.getElementById('world');
-        const hud = document.getElementById('hud');
-        
-        // Target values (where the user wants to go)
-        let targetX = -10000 + window.innerWidth / 2;
-        let targetY = -10000 + window.innerHeight / 2;
-        let targetScale = 1;
-
-        // Current values (where the camera actually is right now)
-        let currentX = targetX;
-        let currentY = targetY;
-        let currentScale = targetScale;
-        
-        // Interaction states
-        let panning = false;
-        let startMouseX = 0;
-        let startMouseY = 0;
-        let startTargetX = 0;
-        let startTargetY = 0;
-        let isShiftHeld = false;
-
-        // --- Track Shift Key ---
-        window.addEventListener('keydown', (e) => { if (e.key === 'Shift') isShiftHeld = true; });
-        window.addEventListener('keyup', (e) => { if (e.key === 'Shift') isShiftHeld = false; });
-
-        // --- Drag to Pan ---
-        document.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            panning = true;
-            startMouseX = e.clientX;
-            startMouseY = e.clientY;
-            startTargetX = targetX;
-            startTargetY = targetY;
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!panning) return;
-            // Calculate distance moved and apply to the TARGET destination
-            const dx = e.clientX - startMouseX;
-            const dy = e.clientY - startMouseY;
-            targetX = startTargetX + dx;
-            targetY = startTargetY + dy;
-        });
-
-        document.addEventListener('mouseup', () => { panning = false; });
-        document.addEventListener('mouseleave', () => { panning = false; });
-
-        // --- Scroll to Zoom ---
-        document.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            
-            // Reduced zoom intensity for slower scrolling
-            const zoomIntensity = 0.05; 
-            const wheel = e.deltaY < 0 ? 1 : -1;
-            const zoomFactor = Math.exp(wheel * zoomIntensity);
-            
-            let newScale = targetScale * zoomFactor;
-            newScale = Math.max(0.1, Math.min(newScale, 5)); // Limits
-
-            // Math to keep the zoom centered on the mouse cursor relative to the target
-            const mouseX = e.clientX - targetX;
-            const mouseY = e.clientY - targetY;
-
-            targetX -= mouseX * (newScale / targetScale - 1);
-            targetY -= mouseY * (newScale / targetScale - 1);
-            targetScale = newScale;
-
-        }, { passive: false });
-
-        // --- Animation Loop (The Physics) ---
-        function updatePhysics() {
-            // If shift is held, ease is 1 (instant snap). Otherwise, ease is 0.08 (smooth float).
-            const ease = isShiftHeld ? 1 : 0.08;
-
-            // Interpolate current position toward target position
-            currentX += (targetX - currentX) * ease;
-            currentY += (targetY - currentY) * ease;
-            currentScale += (targetScale - currentScale) * ease;
-
-            // Apply transform
-            world.style.transform = `translate(${currentX}px, ${currentY}px) scale(${currentScale})`;
-
-            // Update HUD
-            hud.innerText = `POS: X:${Math.round(-currentX)} Y:${Math.round(-currentY)} Z:${currentScale.toFixed(2)}x`;
-
-            // Call next frame
-            requestAnimationFrame(updatePhysics);
-        }
-        
-        // Start the loop
-        updatePhysics();
-
- // --- Generate Bubbles ---
-        const numberOfBubbles = 300; 
-        for (let i = 0; i < numberOfBubbles; i++) {
-            let bubble = document.createElement('div');
-            bubble.classList.add('bubble');
-            
-            let size = Math.random() * 15 + 5;
-            bubble.style.width = `${size}px`;
-            bubble.style.height = `${size}px`;
-            bubble.style.left = `${Math.random() * 100}%`;
-            bubble.style.top = `${Math.random() * 100}%`;
-            bubble.style.animationDuration = `${Math.random() * 15 + 8}s`;
-            bubble.style.animationDelay = `${Math.random() * 10}s`;
-            
-            world.appendChild(bubble);
-        }
- </script> <script type="module" src="./systems/engine.js"></script>
+    <script type="module" src="./systems/engine.js"></script>
 </body>
 </html>
