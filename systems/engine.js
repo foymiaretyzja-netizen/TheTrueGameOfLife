@@ -17,8 +17,10 @@ let startMouseX = 0, startMouseY = 0;
 let startTargetX = 0, startTargetY = 0;
 let isShiftHeld = false;
 
-window.addEventListener('keydown', (e) => { if (e.key === 'Shift') isShiftHeld = true; });
-window.addEventListener('keyup', (e) => { if (e.key === 'Shift') isShiftHeld = false; });
+window.addEventListener('keydown', (e) => { 
+    if (e.key === 'Shift') isShiftHeld = true; 
+    if (e.key === '`') togglePerformanceMode(); // Triggers the purge!
+});
 
 document.addEventListener('mousedown', (e) => {
     e.preventDefault();
