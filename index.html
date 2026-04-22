@@ -46,7 +46,16 @@
             animation: float infinite ease-in;
             pointer-events: none; 
         }
-
+/* Underwater Rock Formations */
+        .rock {
+            position: absolute;
+            background-color: #1c2b3b; /* Deep grey-blue */
+            border: 4px solid #111a24; /* Darker edge */
+            border-radius: 40px; /* Smooth, eroded corners */
+            box-shadow: inset 10px 10px 20px rgba(255, 255, 255, 0.05), 
+                        15px 15px 30px rgba(0, 0, 0, 0.4);
+            pointer-events: none; /* Lets you click/drag through them */
+        }
         @keyframes float {
             0% { transform: translateY(0) scale(1); opacity: 0; }
             20% { opacity: 1; }
