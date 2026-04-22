@@ -126,22 +126,27 @@
             pointer-events: none;
         }
 /* --- ENTITIES --- */
-        .prey {
+       .prey {
             position: absolute;
-            width: 24px;   /* Longer body */
+            width: 30px;   /* Made them slightly longer */
             height: 12px;  /* Sleek profile */
             background: #00ffff; 
-            /* This polygon maps out a perfect fish pointing right! */
-            clip-path: polygon(100% 50%, 70% 20%, 30% 20%, 0% 0%, 0% 100%, 30% 80%, 70% 80%);
+            /* NEW: A 10-point polygon with a curved back, belly, and forked tail! */
+            clip-path: polygon(
+                100% 50%, /* Nose */
+                80% 20%,  /* Forehead */
+                50% 10%,  /* Dorsal peak */
+                20% 35%,  /* Top tail stem */
+                0% 0%,    /* Top tail fin */
+                10% 50%,  /* Tail fork indent */
+                0% 100%,  /* Bottom tail fin */
+                20% 65%,  /* Bottom tail stem */
+                50% 90%,  /* Belly */
+                80% 80%   /* Chin */
+            );
             transform-origin: center;
-            /* Use drop-shadow instead of box-shadow for clip-paths */
             filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.8)); 
         }
-        @keyframes sway {
-            0% { transform: rotate(-15deg); }
-            100% { transform: rotate(15deg); }
-        }
-
         #crosshair {
             position: fixed;
             top: 50%;
