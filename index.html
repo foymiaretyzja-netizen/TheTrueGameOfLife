@@ -46,16 +46,41 @@
             animation: float infinite ease-in;
             pointer-events: none; 
         }
-/* Underwater Rock Formations */
-        .rock {
+/* --- ECOSYSTEM FOOD --- */
+        .seaweed {
             position: absolute;
-            background-color: #1c2b3b; 
-            border: 4px solid #111a24; 
-            /* This complex percentage creates a random-looking organic blob! */
-            border-radius: 43% 57% 65% 35% / 46% 39% 61% 54%; 
-            box-shadow: inset 10px 10px 20px rgba(255, 255, 255, 0.05), 
-                        15px 15px 30px rgba(0, 0, 0, 0.4);
-            pointer-events: none; 
+            width: 15px;
+            height: 60px;
+            background: #2e8b57; /* Sea Green */
+            border-radius: 50% 50% 0 0;
+            transform-origin: bottom center;
+            animation: sway 3s infinite alternate ease-in-out;
+            pointer-events: none;
+        }
+
+        .bittergrass {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #9acd32; /* Yellow-Green */
+            border-radius: 50%;
+            border: 3px dashed #6b8e23; /* Gives a textured, fuzzy grass edge */
+            pointer-events: none;
+        }
+
+        .urchin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #4b0082; /* Deep Purple */
+            /* This complex polygon creates a 12-point spiky star! */
+            clip-path: polygon(50% 0%, 58% 25%, 85% 15%, 70% 38%, 100% 50%, 70% 62%, 85% 85%, 58% 75%, 50% 100%, 42% 75%, 15% 85%, 30% 62%, 0% 50%, 30% 38%, 15% 15%, 42% 25%);
+            pointer-events: none;
+        }
+
+        @keyframes sway {
+            0% { transform: rotate(-15deg); }
+            100% { transform: rotate(15deg); }
         }
 
         #crosshair {
